@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Resultados</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<h2>Resultados en tiempo real</h2>
+
+<canvas id="grafica"></canvas>
+
+<script>
+const nombres = [
+{% for c in candidatas %}
+"{{c.nombre}}",
+{% endfor %}
+];
+
+const votos = [
+{% for c in candidatas %}
+{{c.votos}},
+{% endfor %}
+];
+
+new Chart(document.getElementById("grafica"), {
+type: "bar",
+data: {
+labels: nombres,
+datasets: [{
+label: "Votos",
+data: votos
+}]
+}
+});
+
+setInterval(() => location.reload(), 3000);
+</script>
+
+</body>
+</html>
