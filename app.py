@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, session
 import os
-from werkzeug.utils import secure_filename
 import psycopg2
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = "clave_super_secreta"
@@ -9,60 +9,12 @@ app.secret_key = "clave_super_secreta"
 UPLOAD_FOLDER = "static/fotos"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
-# =========================
-# CONEXION BASE DE DATOS (POSTGRES RENDER)
-# =========================
+
 def get_db():
-    DATABASE_URL = os.environ.get("DATABASE_URL")
-
     conn = psycopg2.connect(DATABASE_URL)
     return conn
-
-
-# =========================
-# CREAR TABLAS AUTOMATICAMENTE
-# =========================
-def crear_tablas():
-
-    conn = get_db()
-    cur = conn.cursor()
-
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS candidatas (
-        id SERIAL PRIMARY KEY,
-        nombre TEXT,
-        foto TEXT,
-        votos INTEGER DEFAULT 0
-    )
-    """)
-
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS alumnos (
-        matricula TEXT PRIMARY KEY,
-        voto INTEGER DEFAULT 0
-    )
-    """)
-
-    conn.commit()
-
-    # insertar candidatas si no existen
-    cur.execute("SELECT COUNT(*) FROM candidatas")
-    total = cur.fetchone()[0]
-
-    if total == 0:
-
-        cur.execute("""
-        INSERT INTO candidatas (nombre, foto, votos)
-        VALUES
-        ('Candidata 1','c1.jpg',0),
-        ('Candidata 2','c2.jpg',0),
-        ('Candidata 3','c3.jpg',0)
-        """)
-
-    conn.commit()
-    cur.close()
-    conn.close()
 
 
 # =========================
@@ -70,15 +22,14 @@ def crear_tablas():
 # =========================
 @app.route("/")
 def index():
+    db = get_db()
+    cursor = db.cursor()
 
-    conn = get_db()
-    cur = conn.cursor()
+    cursor.execute("SELECT * FROM candidatas")
+    candidatas = cursor.fetchall()
 
-    cur.execute("SELECT * FROM candidatas")
-    candidatas = cur.fetchall()
-
-    cur.close()
-    conn.close()
+    cursor.close()
+    db.close()
 
     return render_template("index.html", candidatas=candidatas)
 
@@ -92,35 +43,39 @@ def votar():
     matricula = request.form["matricula"]
     candidata_id = request.form["candidata"]
 
-    conn = get_db()
-    cur = conn.cursor()
+    db = get_db()
+    cursor = db.cursor()
 
-    cur.execute(
+    cursor.execute(
         "SELECT * FROM alumnos WHERE matricula = %s",
         (matricula,)
     )
-
-    alumno = cur.fetchone()
+    alumno = cursor.fetchone()
 
     if not alumno:
+        cursor.close()
+        db.close()
         return "Matrícula no válida"
 
     if alumno[1] == 1:
+        cursor.close()
+        db.close()
         return "Ya votaste"
 
-    cur.execute(
+    cursor.execute(
         "UPDATE candidatas SET votos = votos + 1 WHERE id = %s",
         (candidata_id,)
     )
 
-    cur.execute(
+    cursor.execute(
         "UPDATE alumnos SET voto = 1 WHERE matricula = %s",
         (matricula,)
     )
 
-    conn.commit()
-    cur.close()
-    conn.close()
+    db.commit()
+
+    cursor.close()
+    db.close()
 
     return redirect("/resultados")
 
@@ -130,15 +85,14 @@ def votar():
 # =========================
 @app.route("/resultados")
 def resultados():
+    db = get_db()
+    cursor = db.cursor()
 
-    conn = get_db()
-    cur = conn.cursor()
+    cursor.execute("SELECT * FROM candidatas")
+    candidatas = cursor.fetchall()
 
-    cur.execute("SELECT * FROM candidatas")
-    candidatas = cur.fetchall()
-
-    cur.close()
-    conn.close()
+    cursor.close()
+    db.close()
 
     return render_template("resultados.html", candidatas=candidatas)
 
@@ -165,14 +119,14 @@ def admin():
     if not session.get("admin"):
         return redirect("/")
 
-    conn = get_db()
-    cur = conn.cursor()
+    db = get_db()
+    cursor = db.cursor()
 
-    cur.execute("SELECT * FROM candidatas")
-    candidatas = cur.fetchall()
+    cursor.execute("SELECT * FROM candidatas")
+    candidatas = cursor.fetchall()
 
-    cur.close()
-    conn.close()
+    cursor.close()
+    db.close()
 
     return render_template("admin.html", candidatas=candidatas)
 
@@ -190,32 +144,32 @@ def editar():
     nuevo_nombre = request.form["nombre"]
     foto = request.files["foto"]
 
-    conn = get_db()
-    cur = conn.cursor()
+    db = get_db()
+    cursor = db.cursor()
 
     if foto and foto.filename != "":
-
         filename = secure_filename(foto.filename)
         ruta = os.path.join(app.config["UPLOAD_FOLDER"], filename)
         foto.save(ruta)
 
-        cur.execute("""
-        UPDATE candidatas
-        SET nombre=%s, foto=%s
-        WHERE id=%s
+        cursor.execute("""
+            UPDATE candidatas
+            SET nombre=%s, foto=%s
+            WHERE id=%s
         """, (nuevo_nombre, filename, candidata_id))
 
     else:
 
-        cur.execute("""
-        UPDATE candidatas
-        SET nombre=%s
-        WHERE id=%s
+        cursor.execute("""
+            UPDATE candidatas
+            SET nombre=%s
+            WHERE id=%s
         """, (nuevo_nombre, candidata_id))
 
-    conn.commit()
-    cur.close()
-    conn.close()
+    db.commit()
+
+    cursor.close()
+    db.close()
 
     return redirect("/admin")
 
@@ -225,17 +179,13 @@ def editar():
 # =========================
 @app.route("/logout")
 def logout():
-
     session.pop("admin", None)
     return redirect("/")
 
 
 # =========================
-# INICIAR APP
+# RUN SERVER
 # =========================
-crear_tablas()
-
 if __name__ == "__main__":
-
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
