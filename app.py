@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, session
-import os
 import psycopg2
+import os
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -22,10 +22,11 @@ def get_db():
 # =========================
 @app.route("/")
 def index():
+
     db = get_db()
     cursor = db.cursor()
 
-    cursor.execute("SELECT * FROM candidatas")
+    cursor.execute("SELECT id,nombre,foto,votos FROM candidatas")
     candidatas = cursor.fetchall()
 
     cursor.close()
@@ -47,28 +48,29 @@ def votar():
     cursor = db.cursor()
 
     cursor.execute(
-        "SELECT * FROM alumnos WHERE matricula = %s",
+        "SELECT voto FROM alumnos WHERE matricula=%s",
         (matricula,)
     )
+
     alumno = cursor.fetchone()
 
-    if not alumno:
+    if alumno is None:
         cursor.close()
         db.close()
         return "Matrícula no válida"
 
-    if alumno[1] == 1:
+    if alumno[0] == 1:
         cursor.close()
         db.close()
         return "Ya votaste"
 
     cursor.execute(
-        "UPDATE candidatas SET votos = votos + 1 WHERE id = %s",
+        "UPDATE candidatas SET votos=votos+1 WHERE id=%s",
         (candidata_id,)
     )
 
     cursor.execute(
-        "UPDATE alumnos SET voto = 1 WHERE matricula = %s",
+        "UPDATE alumnos SET voto=1 WHERE matricula=%s",
         (matricula,)
     )
 
@@ -85,10 +87,11 @@ def votar():
 # =========================
 @app.route("/resultados")
 def resultados():
+
     db = get_db()
     cursor = db.cursor()
 
-    cursor.execute("SELECT * FROM candidatas")
+    cursor.execute("SELECT id,nombre,foto,votos FROM candidatas")
     candidatas = cursor.fetchall()
 
     cursor.close()
@@ -122,7 +125,7 @@ def admin():
     db = get_db()
     cursor = db.cursor()
 
-    cursor.execute("SELECT * FROM candidatas")
+    cursor.execute("SELECT id,nombre,foto,votos FROM candidatas")
     candidatas = cursor.fetchall()
 
     cursor.close()
@@ -149,22 +152,23 @@ def editar():
 
     if foto and foto.filename != "":
         filename = secure_filename(foto.filename)
+
         ruta = os.path.join(app.config["UPLOAD_FOLDER"], filename)
         foto.save(ruta)
 
         cursor.execute("""
-            UPDATE candidatas
-            SET nombre=%s, foto=%s
-            WHERE id=%s
-        """, (nuevo_nombre, filename, candidata_id))
+        UPDATE candidatas
+        SET nombre=%s,foto=%s
+        WHERE id=%s
+        """,(nuevo_nombre,filename,candidata_id))
 
     else:
 
         cursor.execute("""
-            UPDATE candidatas
-            SET nombre=%s
-            WHERE id=%s
-        """, (nuevo_nombre, candidata_id))
+        UPDATE candidatas
+        SET nombre=%s
+        WHERE id=%s
+        """,(nuevo_nombre,candidata_id))
 
     db.commit()
 
@@ -179,7 +183,8 @@ def editar():
 # =========================
 @app.route("/logout")
 def logout():
-    session.pop("admin", None)
+
+    session.pop("admin",None)
     return redirect("/")
 
 
@@ -187,5 +192,7 @@ def logout():
 # RUN SERVER
 # =========================
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+
+    port = int(os.environ.get("PORT",10000))
+
+    app.run(host="0.0.0.0",port=port)
