@@ -1,42 +1,262 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
+
 <meta charset="UTF-8">
-<title>Resultados</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<title>Resultados | Elección Reina</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+
+/* ===== COLORES ===== */
+
+:root{
+--gold-main:#d4af37;
+--gold-soft:#f5e6a5;
+--gold-dark:#b8962e;
+}
+
+/* ===== FONDO ===== */
+
+body{
+background: radial-gradient(circle at top, #1e293b 0%, #020617 70%);
+font-family:'Poppins',sans-serif;
+color:white;
+min-height:100vh;
+}
+
+/* ===== TITULO ===== */
+
+.titulo-gala{
+
+text-align:center;
+
+font-family:'Playfair Display',serif;
+
+font-size:clamp(2rem,5vw,3rem);
+
+background:linear-gradient(
+to right,
+#d4af37,
+#fff3c4,
+#b8962e
+);
+
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+
+font-weight:700;
+
+text-shadow:0 5px 30px rgba(212,175,55,0.35);
+
+margin-bottom:40px;
+
+}
+
+/* ===== BOTON REGRESAR ===== */
+
+.btn-regresar{
+
+background:linear-gradient(45deg,#d4af37,#b8962e);
+
+border:none;
+
+color:white;
+
+padding:10px 30px;
+
+border-radius:10px;
+
+font-weight:600;
+
+letter-spacing:1px;
+
+transition:.3s;
+
+}
+
+.btn-regresar:hover{
+
+transform:scale(1.05);
+
+box-shadow:0 10px 25px rgba(212,175,55,0.5);
+
+color:white;
+
+}
+
+/* ===== TARJETAS ===== */
+
+.candidata-card{
+
+height:250px;
+
+background:white;
+
+border-radius:20px;
+
+display:flex;
+
+flex-direction:column;
+
+justify-content:center;
+
+align-items:center;
+
+box-shadow:0 15px 40px rgba(0,0,0,0.3);
+
+transition:.3s;
+
+}
+
+.candidata-card:hover{
+
+transform:translateY(-8px);
+
+}
+
+/* ===== FOTO ===== */
+
+.foto{
+
+width:100px;
+
+height:100px;
+
+border-radius:50%;
+
+object-fit:cover;
+
+border:4px solid var(--gold-main);
+
+margin-bottom:10px;
+
+}
+
+/* ===== NOMBRE ===== */
+
+.nombre{
+
+font-weight:600;
+
+font-size:18px;
+
+color:#222;
+
+}
+
+/* ===== VOTOS ===== */
+
+.votos{
+
+font-size:24px;
+
+font-weight:700;
+
+color:var(--gold-dark);
+
+}
+
+/* ===== GANADORA ===== */
+
+.ganadora{
+
+border:4px solid var(--gold-main);
+
+background:linear-gradient(145deg,#fffdf4,#fff3c4);
+
+box-shadow:0 0 30px rgba(212,175,55,0.7);
+
+transform:scale(1.05);
+
+}
+
+/* ===== CORONA ===== */
+
+.corona{
+
+font-size:30px;
+
+position:absolute;
+
+top:-15px;
+
+}
+
+/* ===== WRAPPER ===== */
+
+.card-wrapper{
+
+position:relative;
+
+}
+
+</style>
+
 </head>
 
 <body>
 
-<h2>Resultados en tiempo real</h2>
+<div class="container py-5">
 
-<canvas id="grafica"></canvas>
+<h1 class="titulo-gala">👑 Resultados en Tiempo Real</h1>
+
+<div class="text-center mb-4">
+<a href="/" class="btn btn-regresar">⬅ Regresar</a>
+</div>
+
+{% set max_votos = candidatas|map(attribute='votos')|max %}
+
+<div class="row g-4 justify-content-center">
+
+{% for c in candidatas %}
+
+<div class="col-lg-2 col-md-3 col-sm-6">
+
+<div class="card-wrapper">
+
+{% if c.votos == max_votos %}
+<div class="corona">👑</div>
+{% endif %}
+
+<div class="candidata-card {% if c.votos == max_votos %}ganadora{% endif %}">
+
+<img src="{{ url_for('static', filename='fotos/' + c.foto) }}" class="foto">
+
+<div class="nombre">
+{{c.nombre}}
+</div>
+
+<div class="votos">
+{{c.votos}}
+</div>
+
+<div style="font-size:12px;color:#777">
+votos
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+</div>
 
 <script>
-const nombres = [
-{% for c in candidatas %}
-"{{c.nombre}}",
-{% endfor %}
-];
 
-const votos = [
-{% for c in candidatas %}
-{{c.votos}},
-{% endfor %}
-];
+setInterval(()=>{
+location.reload()
+},3000)
 
-new Chart(document.getElementById("grafica"), {
-type: "bar",
-data: {
-labels: nombres,
-datasets: [{
-label: "Votos",
-data: votos
-}]
-}
-});
-
-setInterval(() => location.reload(), 3000);
 </script>
 
 </body>

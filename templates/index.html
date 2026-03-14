@@ -1,115 +1,169 @@
+
 <!DOCTYPE html>
+
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cecyt | Reina 2026</title>
+
+<title>Cecyte 11 | Reina 2026</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<!-- SWEET ALERT -->
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
 
 :root{
---gold:#d4af37;
---dark-gold:#996515;
+--gold-main:#d4af37;
+--gold-soft:#f5e6a5;
+--gold-dark:#b8962e;
+--bg-dark:#1e293b;
+--bg-darker:#020617;
+--glass:white;
 }
 
 body{
-background: linear-gradient(to bottom right, #d61313, #f3f6fa);
-font-family:'Poppins', sans-serif;
+background: radial-gradient(circle at top, #1e293b 0%, #020617 70%);
+font-family:'Poppins',sans-serif;
+color:white;
 min-height:100vh;
+padding-bottom:60px;
 }
 
 .main-container{
-background:white;
-border-radius:30px;
-box-shadow:0 25px 50px rgba(0,0,0,0.08);
+background:var(--glass);
+border-radius:35px;
+box-shadow:0 60px 120px rgba(0,0,0,0.6);
+color:#333;
+overflow:hidden;
+}
+
+.institucion-name{
+font-size:0.9rem;
+letter-spacing:5px;
+color:var(--gold-main);
+text-transform:uppercase;
+margin-bottom:6px;
 }
 
 .titulo-gala{
-font-family:'Playfair Display', serif;
-font-size:3rem;
-letter-spacing:2px;
-background: linear-gradient(to right, var(--dark-gold), var(--gold));
+font-family:'Playfair Display',serif;
+font-size:clamp(2.3rem,5vw,3.8rem);
+background:linear-gradient(to right,#d4af37,#fff3c4,#b8962e);
 -webkit-background-clip:text;
 -webkit-text-fill-color:transparent;
-margin-bottom:40px;
+font-weight:700;
+text-shadow:0 5px 30px rgba(212,175,55,0.35);
+margin-bottom:25px;
 }
 
 .card-candidata{
-border:none;
-border-radius:25px;
+background:white;
+border-radius:24px;
 overflow:hidden;
-transition:.4s;
+transition:all .45s ease;
 cursor:pointer;
+border:none;
+box-shadow:0 10px 35px rgba(0,0,0,0.12);
 }
 
 .card-candidata:hover{
-transform:translateY(-10px);
-box-shadow:0 20px 40px rgba(212,175,55,.25);
+transform:translateY(-12px) scale(1.02);
+box-shadow:0 30px 70px rgba(0,0,0,0.25);
 }
 
 .img-wrapper{
-height:320px;
+height:380px;
 overflow:hidden;
+border-bottom:1px solid #eee;
 }
 
 .card-candidata img{
 width:100%;
 height:100%;
 object-fit:cover;
+transition:transform 1s ease;
+}
+
+.card-candidata:hover img{
+transform:scale(1.08);
 }
 
 .input-matricula{
-border:2px solid var(--gold);
-border-radius:15px;
-text-align:center;
-font-size:1.1rem;
-}
-
-.btn-votar-principal{
-background:linear-gradient(45deg,var(--dark-gold),var(--gold));
-border:none;
-color:white;
-padding:15px 50px;
-font-size:1.2rem;
-border-radius:50px;
-}
-
-.card-selected{
-border:4px solid var(--gold);
-background:#fffdf6;
-}
-
-.status-badge{
-font-size:.8rem;
+background:#fdfdfd;
+border:2px solid #eee;
+border-radius:12px;
+padding:12px;
+transition:all .3s;
 font-weight:600;
 }
 
+.input-matricula:focus{
+border-color:var(--gold-main);
+box-shadow:0 0 15px rgba(212,175,55,0.25);
+outline:none;
+}
+
+.btn-votar-principal{
+background:linear-gradient(45deg,#d4af37,#b8962e);
+border:none;
+color:white;
+padding:18px 70px;
+font-size:1.1rem;
+letter-spacing:2px;
+font-weight:600;
+border-radius:14px;
+transition:all .3s;
+box-shadow:0 15px 40px rgba(212,175,55,0.35);
+}
+
+.btn-votar-principal:hover{
+transform:scale(1.05);
+box-shadow:0 20px 60px rgba(212,175,55,0.6);
+}
+
+.card-selected{
+border:3px solid var(--gold-main) !important;
+box-shadow:0 0 30px rgba(212,175,55,0.5);
+}
+
+.status-badge{
+font-size:0.8rem;
+letter-spacing:1px;
+text-transform:uppercase;
+}
+
+.admin-controls{
+background:rgba(255,255,255,0.06);
+padding:10px;
+border-radius:10px;
+backdrop-filter:blur(5px);
+}
+
 </style>
+
 </head>
 
 <body>
 
 <div class="container py-5">
 
-<div class="text-end mb-4">
+<div class="text-end mb-4 admin-controls">
 
-<button class="btn btn-outline-dark btn-sm opacity-50" onclick="mostrarLogin()">
-Acceso Administrador
-</button>
+<button class="btn btn-link text-white text-decoration-none opacity-50 btn-sm" onclick="mostrarLogin()">Acceso Staff</button>
+
+<a href="/resultados" class="btn btn-outline-warning btn-sm ms-2">📊 Resultados</a>
 
 <div id="loginAdmin" style="display:none;" class="mt-3">
 
-<form method="POST" action="/admin_login"
-class="bg-white p-3 rounded shadow d-inline-block">
+<form method="POST" action="/admin_login" class="bg-white p-3 rounded-4 d-inline-block shadow">
 
-<input type="password"
-name="password"
-placeholder="Key"
-required
-class="form-control form-control-sm d-inline w-auto me-2">
+<input type="password" name="password" placeholder="Key" required class="form-control form-control-sm d-inline w-auto me-2">
 
 <button class="btn btn-dark btn-sm">Validar</button>
 
@@ -119,87 +173,54 @@ class="form-control form-control-sm d-inline w-auto me-2">
 
 </div>
 
-
 <div class="main-container p-4 p-md-5">
 
-<header class="text-center">
+<header class="text-center mb-5">
 
-<p class="text-uppercase mb-0"
-style="color:var(--gold);font-weight:600;">
-Cecyte 11 Oxchuc
-</p>
+<p class="institucion-name">Cecyte 11 Oxchuc</p>
 
-<h1 class="titulo-gala">
-Elección Reina 2026
-</h1>
+<h1 class="titulo-gala">Elección Reina 2026</h1>
+
+<div style="width:120px;height:4px;background:linear-gradient(90deg,#d4af37,#fff3c4,#b8962e);margin:auto;border-radius:10px;"></div>
 
 </header>
 
-
 <form method="POST" action="/votar">
-
 
 <div class="row justify-content-center mb-5">
 
-<div class="col-md-6">
+<div class="col-md-5">
 
-<label class="form-label d-block text-center mb-3">
-Matrícula Escolar
-</label>
+<label class="form-label d-block text-center fw-bold mb-3">Identifícate con tu Matrícula</label>
 
-<input
-type="text"
-name="matricula"
-class="form-control input-matricula"
-placeholder="Introduce tu Matrícula"
-required>
+<input type="text" name="matricula" class="form-control input-matricula text-center" placeholder="Ej: 213000..." required>
 
 </div>
 
 </div>
 
-
-<div class="row g-4">
+<div class="row g-4 justify-content-center">
 
 {% for c in candidatas %}
 
-<div class="col-lg-3 col-md-4 col-sm-6">
+<div class="col-lg-3 col-md-6">
 
-<div class="card card-candidata shadow-sm"
-onclick="seleccionar({{c.id}}, this)">
+<div class="card card-candidata" onclick="seleccionar('{{c.id}}', this)">
 
 <div class="img-wrapper">
-
-<img
-src="{{ url_for('static', filename='fotos/' + c.foto) }}"
-alt="{{c.nombre}}">
-
+<img src="{{ url_for('static', filename='fotos/' + c.foto) }}">
 </div>
 
-<div class="card-body text-center">
+<div class="card-body text-center p-3">
 
-<h5 class="fw-bold mb-1">
-{{c.nombre}}
-</h5>
+<h5 class="fw-bold mb-0" style="color:#222;">{{c.nombre}}</h5>
 
-<p class="text-muted small mb-2">
-Candidata #0{{loop.index}}
-</p>
+<p class="text-muted small mb-3">Candidata Oficial</p>
 
-<input
-type="radio"
-name="candidata"
-value="{{c.id}}"
-id="c{{c.id}}"
-hidden
-required>
+<input type="radio" name="candidata" value="{{c.id}}" id="c{{c.id}}" hidden required>
 
-<div
-class="status-badge py-2 rounded border text-muted"
-id="badge-{{c.id}}">
-
+<div class="status-badge py-2 rounded-pill w-100 border text-muted">
 Seleccionar
-
 </div>
 
 </div>
@@ -212,12 +233,11 @@ Seleccionar
 
 </div>
 
-
 <div class="text-center mt-5">
 
-<button type="submit" class="btn btn-votar-principal">
-VOTAR
-</button>
+<button type="submit" class="btn btn-votar-principal">EMITIR MI VOTO</button>
+
+<p class="text-muted small mt-3">Tu voto es secreto y personal.</p>
 
 </div>
 
@@ -227,35 +247,21 @@ VOTAR
 
 </div>
 
-
 <script>
 
 function mostrarLogin(){
-
 const login=document.getElementById("loginAdmin");
-
-login.style.display =
-login.style.display==="none"
-? "block"
-: "none";
-
+login.style.display=login.style.display==="none"?"block":"none";
 }
 
-
-function seleccionar(id, elemento){
+function seleccionar(id,elemento){
 
 document.querySelectorAll(".card-candidata").forEach(card=>{
-
 card.classList.remove("card-selected");
 
 const badge=card.querySelector(".status-badge");
-
 badge.innerHTML="Seleccionar";
-
-badge.classList.remove("bg-dark","text-white");
-
 badge.classList.add("text-muted");
-
 });
 
 document.getElementById("c"+id).checked=true;
@@ -263,16 +269,30 @@ document.getElementById("c"+id).checked=true;
 elemento.classList.add("card-selected");
 
 const activeBadge=elemento.querySelector(".status-badge");
-
 activeBadge.innerHTML="Seleccionada ✅";
-
 activeBadge.classList.remove("text-muted");
-
-activeBadge.classList.add("bg-dark","text-white");
 
 }
 
 </script>
+
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+
+<script>
+
+Swal.fire({
+icon:'warning',
+title:'Aviso',
+text:'{{messages[0]}}',
+confirmButtonText:'Entendido',
+confirmButtonColor:'#d4af37'
+})
+
+</script>
+
+{% endif %}
+{% endwith %}
 
 </body>
 </html>

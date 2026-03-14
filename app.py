@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, session, flash
 import psycopg2
 import psycopg2.extras
 import os
@@ -10,7 +10,7 @@ app.secret_key = "clave_super_secreta"
 UPLOAD_FOLDER = "static/fotos"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-DATABASE_URL = os.environ.get("DATABASE_URL")
+DATABASE_URL = "postgresql://postgres.twmehwedutbtwhstkyyk:votacioncecyt11@aws-0-us-west-2.pooler.supabase.com:5432/postgres"
 
 
 # =========================
@@ -30,7 +30,11 @@ def index():
     db = get_db()
     cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-    cursor.execute("SELECT id,nombre,foto,votos FROM candidatas")
+    cursor.execute("""
+SELECT id,nombre,foto,votos
+FROM candidatas
+ORDER BY id ASC
+""")
     candidatas = cursor.fetchall()
 
     cursor.close()
@@ -58,15 +62,25 @@ def votar():
 
     alumno = cursor.fetchone()
 
+    # MATRÍCULA NO EXISTE
     if alumno is None:
-        cursor.close()
-        db.close()
-        return "Matrícula no válida"
 
-    if alumno["voto"] == 1:
+        flash("❌ Matrícula no válida")
+
         cursor.close()
         db.close()
-        return "Ya votaste"
+
+        return redirect("/")
+
+    # YA VOTÓ
+    if alumno["voto"] == 1:
+
+        flash("⚠️ Ya votaste anteriormente")
+
+        cursor.close()
+        db.close()
+
+        return redirect("/")
 
     cursor.execute(
         "UPDATE candidatas SET votos=votos+1 WHERE id=%s",
@@ -95,7 +109,11 @@ def resultados():
     db = get_db()
     cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-    cursor.execute("SELECT id,nombre,foto,votos FROM candidatas")
+    cursor.execute("""
+        SELECT id,nombre,foto,votos 
+        FROM candidatas
+        ORDER BY votos DESC
+    """)
     candidatas = cursor.fetchall()
 
     cursor.close()
@@ -114,7 +132,8 @@ def admin_login():
         session["admin"] = True
         return redirect("/admin")
 
-    return "Contraseña incorrecta"
+    flash("❌ Contraseña incorrecta")
+    return redirect("/")
 
 
 # =========================
@@ -129,7 +148,12 @@ def admin():
     db = get_db()
     cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-    cursor.execute("SELECT id,nombre,foto,votos FROM candidatas")
+    cursor.execute("""
+    SELECT id,nombre,foto,votos
+    FROM candidatas
+    ORDER BY id ASC
+    """)
+
     candidatas = cursor.fetchall()
 
     cursor.close()
@@ -197,7 +221,4 @@ def logout():
 # RUN SERVER
 # =========================
 if __name__ == "__main__":
-
-    port = int(os.environ.get("PORT", 10000))
-
-    app.run(host="0.0.0.0", port=port)
+    app.run(debug=True, port=10000)
