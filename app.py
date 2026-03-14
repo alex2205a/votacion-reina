@@ -221,4 +221,5 @@ def logout():
 # RUN SERVER
 # =========================
 if __name__ == "__main__":
-    app.run(debug=True, port=10000)
+    port = int(os.environ.get("PORT", 10000))  # usa el puerto de Render o 10000 por defecto
+    app.run(host="0.0.0.0", port=port, debug=True)
