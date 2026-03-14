@@ -1,6 +1,4 @@
-
 <!DOCTYPE html>
-
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -9,15 +7,12 @@
 <title>Cecyte 11 | Reina 2026</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
 <!-- SWEET ALERT -->
-
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
-
 :root{
 --gold-main:#d4af37;
 --gold-soft:#f5e6a5;
@@ -44,13 +39,12 @@ overflow:hidden;
 }
 
 .institucion-name{
-    font-size:1.8rem;       /* antes era 0.9rem, ahora mucho más grande */
+    font-size:1.5rem;
     letter-spacing:5px;
     color:#f2f2f2f;
     text-transform:uppercase;
-    margin-bottom:12px;     /* un poco más de espacio con el título */
-    font-weight:700;        /* opcional, que se vea más destacado */
-
+    margin-bottom:12px;
+    font-weight:700;
 }
 
 .titulo-gala{
@@ -146,9 +140,7 @@ padding:10px;
 border-radius:10px;
 backdrop-filter:blur(5px);
 }
-
 </style>
-
 </head>
 
 <body>
@@ -157,143 +149,129 @@ backdrop-filter:blur(5px);
 
 <div class="text-end mb-4 admin-controls">
 
-<button class="btn btn-link text-white text-decoration-none opacity-50 btn-sm" onclick="mostrarLogin()">Acceso Admin</button>
+    <!-- Botón Acceso Staff -->
+    <button class="btn btn-link text-white text-decoration-none opacity-50 btn-sm" onclick="mostrarLogin('admin')">
+        Acceso Admin
+    </button>
 
-<a href="/resultados" class="btn btn-outline-warning btn-sm ms-2">📊 Resultados</a>
+    <!-- Botón Resultados -->
+    <button class="btn btn-outline-warning btn-sm ms-2" onclick="mostrarLogin('resultados')">
+        📊 Resultados
+    </button>
 
-<div id="loginAdmin" style="display:none;" class="mt-3">
-
-<form method="POST" action="/admin_login" class="bg-white p-3 rounded-4 d-inline-block shadow">
-
-<input type="password" name="password" placeholder="Key" required class="form-control form-control-sm d-inline w-auto me-2">
-
-<button class="btn btn-dark btn-sm">Validar</button>
-
-</form>
-
-</div>
+    <!-- Formulario oculto -->
+    <div id="loginAdmin" style="display:none;" class="mt-3">
+        <form method="POST" action="/admin_login" class="bg-white p-3 rounded-4 d-inline-block shadow">
+            <input type="password" name="password" placeholder="Key" required class="form-control form-control-sm d-inline w-auto me-2">
+            <!-- Campo oculto que indica destino -->
+            <input type="hidden" name="next" id="nextAction" value="admin">
+            <button class="btn btn-dark btn-sm">Validar</button>
+        </form>
+    </div>
 
 </div>
 
 <div class="main-container p-4 p-md-5">
 
-<header class="text-center mb-5">
+<header class="text-center mb-5 d-flex align-items-center justify-content-between">
+    
+    <!-- Logo a la izquierda -->
+    <div class="logo">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo CECyT 11" style="height:150px;">
+    </div>
 
-<p class="institucion-name">Cecyte 11 Oxchuc</p>
+    <!-- Título centrado -->
+    <div class="flex-grow-1 text-center">
+        <p class="institucion-name">Cecyte 11 Oxchuc</p>
+        <h1 class="titulo-gala">Elección Chica CECyT 2026</h1>
+        <div style="width:120px;height:4px;background:linear-gradient(90deg,#d4af37,#fff3c4,#b8962e);margin:auto;border-radius:10px;"></div>
+    </div>
 
-<h1 class="titulo-gala">Elección Chica CECyT 2026</h1>
-
-<div style="width:120px;height:4px;background:linear-gradient(90deg,#d4af37,#fff3c4,#b8962e);margin:auto;border-radius:10px;"></div>
+    <!-- Espacio a la derecha para balancear -->
+    <div style="width:150px;"></div>
 
 </header>
 
 <form method="POST" action="/votar">
-
 <div class="row justify-content-center mb-5">
-
 <div class="col-md-5">
+<label class="form-label d-block text-center fw-bold mb-3">Identifícate con tu Numero de Control</label>
 
-<label class="form-label d-block text-center fw-bold mb-3">Identifícate con tu numero de control</label>
-
-<input type="text" name="matricula" class="form-control input-matricula text-center" placeholder="Ingresa tu Numero de Control" required>
-
+<input type="text" name="matricula" class="form-control input-matricula text-center" placeholder="Ingresa los ultimos 5 numeros" required>
 </div>
-
 </div>
 
 <div class="row g-4 justify-content-center">
-
 {% for c in candidatas %}
-
 <div class="col-lg-3 col-md-6">
-
 <div class="card card-candidata" onclick="seleccionar('{{c.id}}', this)">
-
 <div class="img-wrapper">
 <img src="{{ url_for('static', filename='fotos/' + c.foto) }}">
 </div>
-
 <div class="card-body text-center p-3">
-
 <h5 class="fw-bold mb-0" style="color:#222;">{{c.nombre}}</h5>
-
 <p class="text-muted small mb-3">Candidata Oficial</p>
-
 <input type="radio" name="candidata" value="{{c.id}}" id="c{{c.id}}" hidden required>
-
-<div class="status-badge py-2 rounded-pill w-100 border text-muted">
-Seleccionar
+<div class="status-badge py-2 rounded-pill w-100 border text-muted">Seleccionar</div>
 </div>
-
 </div>
-
 </div>
-
-</div>
-
 {% endfor %}
-
 </div>
 
 <div class="text-center mt-5">
-
 <button type="submit" class="btn btn-votar-principal">EMITIR MI VOTO</button>
 
-
 </div>
-
 </form>
 
 </div>
-
 </div>
 
 <script>
+function mostrarLogin(tipo){
+    const login=document.getElementById("loginAdmin");
+    const nextInput=document.getElementById("nextAction");
+    login.style.display=login.style.display==="none"?"block":"none";
 
-function mostrarLogin(){
-const login=document.getElementById("loginAdmin");
-login.style.display=login.style.display==="none"?"block":"none";
+    if(tipo === 'admin'){
+        nextInput.value = 'admin';
+    } else if(tipo === 'resultados'){
+        nextInput.value = 'resultados';
+    }
 }
 
 function seleccionar(id,elemento){
-
-document.querySelectorAll(".card-candidata").forEach(card=>{
-card.classList.remove("card-selected");
-
-const badge=card.querySelector(".status-badge");
-badge.innerHTML="Seleccionar";
-badge.classList.add("text-muted");
-});
-
-document.getElementById("c"+id).checked=true;
-
-elemento.classList.add("card-selected");
-
-const activeBadge=elemento.querySelector(".status-badge");
-activeBadge.innerHTML="Seleccionada ✅";
-activeBadge.classList.remove("text-muted");
-
+    document.querySelectorAll(".card-candidata").forEach(card=>{
+        card.classList.remove("card-selected");
+        const badge=card.querySelector(".status-badge");
+        badge.innerHTML="Seleccionar";
+        badge.classList.add("text-muted");
+    });
+    document.getElementById("c"+id).checked=true;
+    elemento.classList.add("card-selected");
+    const activeBadge=elemento.querySelector(".status-badge");
+    activeBadge.innerHTML="Seleccionada ✅";
+    activeBadge.classList.remove("text-muted");
 }
-
 </script>
 
 {% with messages = get_flashed_messages() %}
 {% if messages %}
-
 <script>
-
 Swal.fire({
-icon:'warning',
-title:'Aviso',
-text:'{{messages[0]}}',
-confirmButtonText:'Entendido',
-confirmButtonColor:'#d4af37'
+icon: '{{ "success" if "✅" in messages[0] else "warning" }}',
+title: '{{ "¡Éxito!" if "✅" in messages[0] else "Aviso" }}',
+text: '{{ messages[0] }}',
+confirmButtonText: 'Entendido',
+confirmButtonColor: '#d4af37'
 })
-
 </script>
-
 {% endif %}
 {% endwith %}
 
+<footer class="text-center mt-5 mb-3 p-2" style="color:#f2f2f2; font-size:0.9rem; background:rgba(255,255,255,0.05); border-radius:10px;">
+    <p>Desarrollado por <strong>Ramon Alejandro Guillen Sanchez</strong> | Proyecto de Elección Chica CECyT 2026</p>
+</footer>
 </body>
 </html>
