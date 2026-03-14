@@ -30,12 +30,14 @@ min-height:100vh;
 padding-bottom:60px;
 }
 
-.main-container{
-background:var(--glass);
-border-radius:35px;
-box-shadow:0 60px 120px rgba(0,0,0,0.6);
-color:#333;
-overflow:hidden;
+.main-container {
+    background: var(--glass);
+    border-radius: 35px;
+    box-shadow: 0 60px 120px rgba(0,0,0,0.6);
+    color: #333;
+    overflow: hidden;
+    position: relative; /* <-- importante para que el logo se posicione dentro */
+
 }
 
 .institucion-name{
@@ -172,24 +174,15 @@ backdrop-filter:blur(5px);
 </div>
 
 <div class="main-container p-4 p-md-5">
+<!-- Logo flotante dentro del recuadro blanco -->
+<div style="position:absolute; top:20px; left:20px;">
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo CECyT 11" style="height:80px;">
+</div>
 
-<header class="text-center mb-5 d-flex align-items-center justify-content-between">
-    
-    <!-- Logo a la izquierda -->
-    <div class="logo">
-        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo CECyT 11" style="height:60px;">
-    </div>
-
-    <!-- Título centrado -->
-    <div class="flex-grow-1 text-center">
-        <p class="institucion-name">Cecyte 11 Oxchuc</p>
-        <h1 class="titulo-gala">Elección Chica CECyT 2026</h1>
-        <div style="width:120px;height:4px;background:linear-gradient(90deg,#d4af37,#fff3c4,#b8962e);margin:auto;border-radius:10px;"></div>
-    </div>
-
-    <!-- Espacio a la derecha para balancear -->
-    <div style="width:60px;"></div>
-
+<header class="text-center mb-5">
+    <p class="institucion-name">Cecyte 11 Oxchuc</p>
+    <h1 class="titulo-gala">Elección Chica CECyT 2026</h1>
+    <div style="width:120px;height:4px;background:linear-gradient(90deg,#d4af37,#fff3c4,#b8962e);margin:auto;border-radius:10px;"></div>
 </header>
 
 <form method="POST" action="/votar">
@@ -274,4 +267,4 @@ confirmButtonColor: '#d4af37'
     <p>Desarrollado por <strong>Ramon Alejandro Guillen Sanchez</strong> | Proyecto de Elección Chica CECyT 2026</p>
 </footer>
 </body>
-</html>
+</html>S
