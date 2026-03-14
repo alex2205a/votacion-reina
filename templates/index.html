@@ -44,11 +44,13 @@ overflow:hidden;
 }
 
 .institucion-name{
-font-size:0.9rem;
-letter-spacing:5px;
-color:var(--gold-main);
-text-transform:uppercase;
-margin-bottom:6px;
+    font-size:clamp(2rem,5vw,3rem); /* mínimo 2rem, máximo 3rem, ajustable según pantalla */
+    letter-spacing:5px;
+    color:var(--gold-main);
+    text-transform:uppercase;
+    margin-bottom:12px;
+    font-weight:700;
+
 }
 
 .titulo-gala{
