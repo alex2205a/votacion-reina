@@ -146,6 +146,10 @@ backdrop-filter:blur(5px);
 </head>
 
 <body>
+    <!-- Logo en la esquina superior izquierda -->
+<div style="position:absolute; top:20px; left:20px; z-index:1000;">
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo CECyT 11" style="height:80px;">
+</div>
 
 <div class="container py-5">
 
@@ -174,10 +178,6 @@ backdrop-filter:blur(5px);
 </div>
 
 <div class="main-container p-4 p-md-5">
-<!-- Logo flotante dentro del recuadro blanco -->
-<div style="position:absolute; top:20px; left:20px;">
-    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo CECyT 11" style="height:80px;">
-</div>
 
 <header class="text-center mb-5">
     <p class="institucion-name">Cecyte 11 Oxchuc</p>
@@ -267,4 +267,4 @@ confirmButtonColor: '#d4af37'
     <p>Desarrollado por <strong>Ramon Alejandro Guillen Sanchez</strong> | Proyecto de Elección Chica CECyT 2026</p>
 </footer>
 </body>
-</html>S
+</html>
