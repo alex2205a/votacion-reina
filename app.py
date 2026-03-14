@@ -46,6 +46,7 @@ ORDER BY id ASC
 # =========================
 # VOTAR
 # =========================
+
 @app.route("/votar", methods=["POST"])
 def votar():
 
@@ -64,24 +65,19 @@ def votar():
 
     # MATRÍCULA NO EXISTE
     if alumno is None:
-
         flash("❌ Matrícula no válida")
-
         cursor.close()
         db.close()
-
         return redirect("/")
 
     # YA VOTÓ
     if alumno["voto"] == 1:
-
         flash("⚠️ Ya votaste anteriormente")
-
         cursor.close()
         db.close()
-
         return redirect("/")
 
+    # REGISTRAR VOTO
     cursor.execute(
         "UPDATE candidatas SET votos=votos+1 WHERE id=%s",
         (candidata_id,)
@@ -93,11 +89,25 @@ def votar():
     )
 
     db.commit()
-
     cursor.close()
     db.close()
 
-    return redirect("/resultados")
+    # Flash de éxito y no redirigir
+    flash("✅ Tu voto ha sido registrado con éxito")
+
+    # Devuelve el mismo template con candidatas
+    db = get_db()
+    cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cursor.execute("""
+        SELECT id,nombre,foto,votos
+        FROM candidatas
+        ORDER BY id ASC
+    """)
+    candidatas = cursor.fetchall()
+    cursor.close()
+    db.close()
+
+    return render_template("index.html", candidatas=candidatas)
 
 
 # =========================
@@ -105,35 +115,44 @@ def votar():
 # =========================
 @app.route("/resultados")
 def resultados():
+    if not session.get("can_view_results") and not session.get("admin"):
+        flash("❌ Debes ingresar la contraseña para ver los resultados")
+        return redirect("/")
 
     db = get_db()
     cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
-
     cursor.execute("""
         SELECT id,nombre,foto,votos 
         FROM candidatas
         ORDER BY votos DESC
     """)
     candidatas = cursor.fetchall()
-
     cursor.close()
     db.close()
-
     return render_template("resultados.html", candidatas=candidatas)
-
-
 # =========================
 # LOGIN ADMIN
 # =========================
 @app.route("/admin_login", methods=["POST"])
 def admin_login():
+    password = request.form["password"]
+    next_page = request.form.get("next", "admin")  # admin por defecto
 
-    if request.form["password"] == "admin123":
-        session["admin"] = True
-        return redirect("/admin")
+    if next_page == "admin":
+        if password == "admin123":
+            session["admin"] = True
+            return redirect("/admin")
+        else:
+            flash("❌ Contraseña de admin incorrecta")
+            return redirect("/")
 
-    flash("❌ Contraseña incorrecta")
-    return redirect("/")
+    elif next_page == "resultados":
+        if password == "resultados123":
+            session["can_view_results"] = True
+            return redirect("/resultados")
+        else:
+            flash("❌ Contraseña para ver resultados incorrecta")
+            return redirect("/")
 
 
 # =========================
@@ -215,8 +234,6 @@ def logout():
 
     session.pop("admin", None)
     return redirect("/")
-
-
 # =========================
 # RUN SERVER
 # =========================
