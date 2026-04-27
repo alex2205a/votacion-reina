@@ -225,7 +225,11 @@ position:relative;
 
 <div class="candidata-card {% if c.votos == max_votos %}ganadora{% endif %}">
 
+{% if c.foto %}
 <img src="{{ c.foto }}" class="foto">
+{% else %}
+<img src="https://via.placeholder.com/100?text=?" class="foto">
+{% endif %}
 
 <div class="nombre">
 {{c.nombre}}
