@@ -225,7 +225,7 @@ position:relative;
 
 <div class="candidata-card {% if c.votos == max_votos %}ganadora{% endif %}">
 
-<img src="{{ url_for('static', filename='fotos/' + c.foto) }}" class="foto">
+<img src="{{ c.foto }}" class="foto">
 
 <div class="nombre">
 {{c.nombre}}
