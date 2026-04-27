@@ -3,38 +3,29 @@ import psycopg2
 import psycopg2.extras
 import os
 from werkzeug.utils import secure_filename
-
-# 🔥 NUEVO
 from supabase import create_client
 import time
 
 app = Flask(__name__)
-app.secret_key = "clave_super_secreta"
+app.secret_key = os.environ.get("SECRET_KEY", "dev_key")
 
-# 🔑 SUPABASE CONFIG
+# 🔑 SUPABASE
 SUPABASE_URL = "https://twmehwedutbtwhstkyyk.supabase.co"
 SUPABASE_KEY = "sb_publishable_ziGnT8tm69cMpDy1-bxRlA_Ky-9w2ch"
-
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# DATABASE
+# 🗄️ DATABASE
 DATABASE_URL = "postgresql://postgres.twmehwedutbtwhstkyyk:votacioncecyt11@aws-0-us-west-2.pooler.supabase.com:5432/postgres"
 
-
-# =========================
-# CONEXION DB
-# =========================
 def get_db():
     return psycopg2.connect(DATABASE_URL)
 
-
 # =========================
-# SUBIR IMAGEN A SUPABASE
+# SUBIR IMAGEN
 # =========================
 def subir_imagen(file):
     nombre = secure_filename(file.filename)
     nombre_unico = f"{int(time.time())}_{nombre}"
-
     ruta = f"candidatas/{nombre_unico}"
 
     supabase.storage.from_("candidatas").upload(
@@ -43,24 +34,32 @@ def subir_imagen(file):
         {"content-type": file.content_type}
     )
 
-    url = supabase.storage.from_("candidatas").get_public_url(ruta)
+    return supabase.storage.from_("candidatas").get_public_url(ruta)
 
-    return url
-
+# =========================
+# ELIMINAR IMAGEN
+# =========================
+def eliminar_imagen(url):
+    try:
+        if url and "supabase" in url:
+            nombre = url.split("/")[-1]
+            ruta = f"candidatas/{nombre}"
+            supabase.storage.from_("candidatas").remove([ruta])
+    except Exception as e:
+        print("Error eliminando:", e)
 
 # =========================
 # INDEX
 # =========================
 @app.route("/")
 def index():
-
     db = get_db()
     cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     cursor.execute("""
-    SELECT id,nombre,foto,votos
-    FROM candidatas
-    ORDER BY id ASC
+        SELECT id,nombre,foto,votos
+        FROM candidatas
+        ORDER BY id ASC
     """)
     candidatas = cursor.fetchall()
 
@@ -69,24 +68,18 @@ def index():
 
     return render_template("index.html", candidatas=candidatas)
 
-
 # =========================
 # VOTAR
 # =========================
 @app.route("/votar", methods=["POST"])
 def votar():
-
     matricula = request.form["matricula"]
     candidata_id = request.form["candidata"]
 
     db = get_db()
     cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-    cursor.execute(
-        "SELECT voto FROM alumnos WHERE matricula=%s",
-        (matricula,)
-    )
-
+    cursor.execute("SELECT voto FROM alumnos WHERE matricula=%s", (matricula,))
     alumno = cursor.fetchone()
 
     if alumno is None:
@@ -97,24 +90,15 @@ def votar():
         flash("⚠️ Ya votaste anteriormente")
         return redirect("/")
 
-    cursor.execute(
-        "UPDATE candidatas SET votos=votos+1 WHERE id=%s",
-        (candidata_id,)
-    )
-
-    cursor.execute(
-        "UPDATE alumnos SET voto=1 WHERE matricula=%s",
-        (matricula,)
-    )
+    cursor.execute("UPDATE candidatas SET votos=votos+1 WHERE id=%s", (candidata_id,))
+    cursor.execute("UPDATE alumnos SET voto=1 WHERE matricula=%s", (matricula,))
 
     db.commit()
     cursor.close()
     db.close()
 
     flash("✅ Tu voto ha sido registrado con éxito")
-
     return redirect("/")
-
 
 # =========================
 # RESULTADOS
@@ -122,7 +106,7 @@ def votar():
 @app.route("/resultados")
 def resultados():
     if not session.get("can_view_results") and not session.get("admin"):
-        flash("❌ Debes ingresar la contraseña para ver los resultados")
+        flash("❌ Debes ingresar la contraseña")
         return redirect("/")
 
     db = get_db()
@@ -140,9 +124,8 @@ def resultados():
 
     return render_template("resultados.html", candidatas=candidatas)
 
-
 # =========================
-# LOGIN ADMIN
+# LOGIN
 # =========================
 @app.route("/admin_login", methods=["POST"])
 def admin_login():
@@ -153,25 +136,19 @@ def admin_login():
         if password == "admin123":
             session["admin"] = True
             return redirect("/admin")
-        else:
-            flash("❌ Contraseña incorrecta")
-            return redirect("/")
-
-    elif next_page == "resultados":
+    else:
         if password == "resultados123":
             session["can_view_results"] = True
             return redirect("/resultados")
-        else:
-            flash("❌ Contraseña incorrecta")
-            return redirect("/")
 
+    flash("❌ Contraseña incorrecta")
+    return redirect("/")
 
 # =========================
-# PANEL ADMIN
+# ADMIN
 # =========================
 @app.route("/admin")
 def admin():
-
     if not session.get("admin"):
         return redirect("/")
 
@@ -179,11 +156,10 @@ def admin():
     cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     cursor.execute("""
-    SELECT id,nombre,foto,votos
-    FROM candidatas
-    ORDER BY id ASC
+        SELECT id,nombre,foto,votos
+        FROM candidatas
+        ORDER BY id ASC
     """)
-
     candidatas = cursor.fetchall()
 
     cursor.close()
@@ -191,9 +167,8 @@ def admin():
 
     return render_template("admin.html", candidatas=candidatas)
 
-
 # =========================
-# EDITAR CANDIDATA
+# EDITAR
 # =========================
 @app.route("/editar", methods=["POST"])
 def editar():
@@ -208,20 +183,32 @@ def editar():
     db = get_db()
     cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-    if foto and foto.filename != "":
+    cursor.execute("SELECT foto FROM candidatas WHERE id=%s", (candidata_id,))
+    actual = cursor.fetchone()
+
+    if "eliminar_foto" in request.form:
+        if actual and actual["foto"]:
+            eliminar_imagen(actual["foto"])
+
+        cursor.execute("UPDATE candidatas SET foto=NULL WHERE id=%s", (candidata_id,))
+
+    elif foto and foto.filename != "":
+        if actual and actual["foto"]:
+            eliminar_imagen(actual["foto"])
+
         url = subir_imagen(foto)
 
         cursor.execute("""
-        UPDATE candidatas
-        SET nombre=%s, foto=%s
-        WHERE id=%s
+            UPDATE candidatas
+            SET nombre=%s, foto=%s
+            WHERE id=%s
         """, (nuevo_nombre, url, candidata_id))
 
     else:
         cursor.execute("""
-        UPDATE candidatas
-        SET nombre=%s
-        WHERE id=%s
+            UPDATE candidatas
+            SET nombre=%s
+            WHERE id=%s
         """, (nuevo_nombre, candidata_id))
 
     db.commit()
@@ -230,18 +217,16 @@ def editar():
 
     return redirect("/admin")
 
-
 # =========================
 # LOGOUT
 # =========================
 @app.route("/logout")
 def logout():
-    session.pop("admin", None)
+    session.clear()
     return redirect("/")
 
-
 # =========================
-# RUN SERVER
+# RUN
 # =========================
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
