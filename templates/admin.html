@@ -1,169 +1,30 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-
 <meta charset="UTF-8">
 <title>Panel Administrador</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-
 <style>
-
-/* ===== PALETA ===== */
-
-:root{
---gold-main:#d4af37;
---gold-soft:#f5e6a5;
---gold-dark:#b8962e;
-
---bg-dark:#1e293b;
---bg-darker:#020617;
-}
-
-/* ===== FONDO ===== */
-
 body{
-background: radial-gradient(circle at top, #1e293b 0%, #020617 70%);
-font-family:'Poppins',sans-serif;
+background:#0f172a;
 color:white;
-min-height:100vh;
 }
-
-/* ===== TITULO ===== */
-
-.titulo-gala{
-font-family:'Playfair Display',serif;
-font-size:clamp(2rem,5vw,3rem);
-
-background:linear-gradient(
-to right,
-#d4af37,
-#fff3c4,
-#b8962e
-);
-
--webkit-background-clip:text;
--webkit-text-fill-color:transparent;
-
-font-weight:700;
-text-shadow:0 5px 30px rgba(212,175,55,0.35);
-}
-
-/* ===== TARJETAS ===== */
 
 .card-admin{
-
 background:white;
-
-border-radius:24px;
-
+border-radius:20px;
 padding:20px;
-
-box-shadow:0 15px 40px rgba(0,0,0,0.25);
-
-transition:.4s;
-
-border:none;
-
+color:black;
 }
-
-.card-admin:hover{
-
-transform:translateY(-10px);
-
-box-shadow:0 25px 60px rgba(0,0,0,0.4);
-
-}
-
-/* ===== IMAGEN ===== */
 
 .img-candidata{
-
 height:260px;
-
 object-fit:cover;
-
-border-radius:15px;
-
-box-shadow:0 10px 25px rgba(0,0,0,.2);
-
-}
-
-/* ===== INPUTS ===== */
-
-.form-control{
-
 border-radius:10px;
-
-border:2px solid #eee;
-
 }
-
-.form-control:focus{
-
-border-color:var(--gold-main);
-
-box-shadow:0 0 10px rgba(212,175,55,0.3);
-
-}
-
-/* ===== BOTON GUARDAR ===== */
-
-.btn-guardar{
-
-background:linear-gradient(45deg,#d4af37,#b8962e);
-
-border:none;
-
-color:white;
-
-font-weight:600;
-
-letter-spacing:1px;
-
-padding:10px;
-
-border-radius:10px;
-
-transition:.3s;
-
-}
-
-.btn-guardar:hover{
-
-transform:scale(1.05);
-
-box-shadow:0 10px 25px rgba(212,175,55,0.5);
-
-color:white;
-
-}
-
-/* ===== BOTON LOGOUT ===== */
-
-.btn-logout{
-
-background:#dc3545;
-
-border:none;
-
-padding:10px 25px;
-
-border-radius:10px;
-
-font-weight:600;
-
-}
-
-.btn-logout:hover{
-
-background:#b02a37;
-
-}
-
 </style>
 
 </head>
@@ -172,17 +33,16 @@ background:#b02a37;
 
 <div class="container py-5">
 
-<h1 class="text-center mb-4 titulo-gala">👑 Panel Administrador</h1>
+<h2 class="text-center mb-4">Panel Admin</h2>
 
-<div class="text-center mb-5">
-<a href="/logout" class="btn btn-logout">Cerrar sesión</a>
+<div class="text-center mb-4">
+<a href="/logout" class="btn btn-danger">Cerrar sesión</a>
 </div>
 
 <div class="row g-4">
 
 {% for c in candidatas %}
-
-<div class="col-lg-3 col-md-4 col-sm-6">
+<div class="col-md-3">
 
 <div class="card-admin">
 
@@ -190,28 +50,32 @@ background:#b02a37;
 
 <input type="hidden" name="id" value="{{c.id}}">
 
+{% if c.foto %}
 <img src="{{ c.foto }}" class="img-fluid img-candidata mb-3">
+{% else %}
+<img src="https://via.placeholder.com/300x260?text=Sin+imagen" class="img-fluid img-candidata mb-3">
+{% endif %}
 
-<label class="fw-bold text-dark">Nombre:</label>
+<input type="text" name="nombre" value="{{c.nombre}}" class="form-control mb-2">
 
-<input type="text" name="nombre" value="{{c.nombre}}" class="form-control mb-3">
+<input type="file" name="foto" class="form-control mb-2">
 
-<label class="fw-bold text-dark">Cambiar Foto:</label>
+{% if c.foto %}
+<button type="submit" name="eliminar_foto" value="1" class="btn btn-danger w-100 mb-2">
+Eliminar foto
+</button>
+{% endif %}
 
-<input type="file" name="foto" class="form-control mb-3">
-
-<button class="btn btn-guardar w-100">Guardar Cambios</button>
+<button class="btn btn-success w-100">Guardar</button>
 
 </form>
 
 </div>
 
 </div>
-
 {% endfor %}
 
 </div>
-
 </div>
 
 </body>
