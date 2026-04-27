@@ -4,12 +4,20 @@ import psycopg2.extras
 import os
 from werkzeug.utils import secure_filename
 
+# 🔥 NUEVO
+from supabase import create_client
+import time
+
 app = Flask(__name__)
 app.secret_key = "clave_super_secreta"
 
-UPLOAD_FOLDER = "static/fotos"
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+# 🔑 SUPABASE CONFIG
+SUPABASE_URL = "https://twmehwedutbtwhstkyyk.supabase.co"
+SUPABASE_KEY = "sb_publishable_ziGnT8tm69cMpDy1-bxRlA_Ky-9w2ch"
 
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+# DATABASE
 DATABASE_URL = "postgresql://postgres.twmehwedutbtwhstkyyk:votacioncecyt11@aws-0-us-west-2.pooler.supabase.com:5432/postgres"
 
 
@@ -17,8 +25,27 @@ DATABASE_URL = "postgresql://postgres.twmehwedutbtwhstkyyk:votacioncecyt11@aws-0
 # CONEXION DB
 # =========================
 def get_db():
-    conn = psycopg2.connect(DATABASE_URL)
-    return conn
+    return psycopg2.connect(DATABASE_URL)
+
+
+# =========================
+# SUBIR IMAGEN A SUPABASE
+# =========================
+def subir_imagen(file):
+    nombre = secure_filename(file.filename)
+    nombre_unico = f"{int(time.time())}_{nombre}"
+
+    ruta = f"candidatas/{nombre_unico}"
+
+    supabase.storage.from_("candidatas").upload(
+        ruta,
+        file.read(),
+        {"content-type": file.content_type}
+    )
+
+    url = supabase.storage.from_("candidatas").get_public_url(ruta)
+
+    return url
 
 
 # =========================
@@ -31,10 +58,10 @@ def index():
     cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     cursor.execute("""
-SELECT id,nombre,foto,votos
-FROM candidatas
-ORDER BY id ASC
-""")
+    SELECT id,nombre,foto,votos
+    FROM candidatas
+    ORDER BY id ASC
+    """)
     candidatas = cursor.fetchall()
 
     cursor.close()
@@ -46,7 +73,6 @@ ORDER BY id ASC
 # =========================
 # VOTAR
 # =========================
-
 @app.route("/votar", methods=["POST"])
 def votar():
 
@@ -63,21 +89,14 @@ def votar():
 
     alumno = cursor.fetchone()
 
-    # MATRÍCULA NO EXISTE
     if alumno is None:
         flash("❌ Matrícula no válida")
-        cursor.close()
-        db.close()
         return redirect("/")
 
-    # YA VOTÓ
     if alumno["voto"] == 1:
         flash("⚠️ Ya votaste anteriormente")
-        cursor.close()
-        db.close()
         return redirect("/")
 
-    # REGISTRAR VOTO
     cursor.execute(
         "UPDATE candidatas SET votos=votos+1 WHERE id=%s",
         (candidata_id,)
@@ -92,22 +111,9 @@ def votar():
     cursor.close()
     db.close()
 
-    # Flash de éxito y no redirigir
     flash("✅ Tu voto ha sido registrado con éxito")
 
-    # Devuelve el mismo template con candidatas
-    db = get_db()
-    cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute("""
-        SELECT id,nombre,foto,votos
-        FROM candidatas
-        ORDER BY id ASC
-    """)
-    candidatas = cursor.fetchall()
-    cursor.close()
-    db.close()
-
-    return render_template("index.html", candidatas=candidatas)
+    return redirect("/")
 
 
 # =========================
@@ -121,29 +127,34 @@ def resultados():
 
     db = get_db()
     cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
     cursor.execute("""
         SELECT id,nombre,foto,votos 
         FROM candidatas
         ORDER BY votos DESC
     """)
     candidatas = cursor.fetchall()
+
     cursor.close()
     db.close()
+
     return render_template("resultados.html", candidatas=candidatas)
+
+
 # =========================
 # LOGIN ADMIN
 # =========================
 @app.route("/admin_login", methods=["POST"])
 def admin_login():
     password = request.form["password"]
-    next_page = request.form.get("next", "admin")  # admin por defecto
+    next_page = request.form.get("next", "admin")
 
     if next_page == "admin":
         if password == "admin123":
             session["admin"] = True
             return redirect("/admin")
         else:
-            flash("❌ Contraseña de admin incorrecta")
+            flash("❌ Contraseña incorrecta")
             return redirect("/")
 
     elif next_page == "resultados":
@@ -151,7 +162,7 @@ def admin_login():
             session["can_view_results"] = True
             return redirect("/resultados")
         else:
-            flash("❌ Contraseña para ver resultados incorrecta")
+            flash("❌ Contraseña incorrecta")
             return redirect("/")
 
 
@@ -198,20 +209,15 @@ def editar():
     cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     if foto and foto.filename != "":
-
-        filename = secure_filename(foto.filename)
-        ruta = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-
-        foto.save(ruta)
+        url = subir_imagen(foto)
 
         cursor.execute("""
         UPDATE candidatas
         SET nombre=%s, foto=%s
         WHERE id=%s
-        """, (nuevo_nombre, filename, candidata_id))
+        """, (nuevo_nombre, url, candidata_id))
 
     else:
-
         cursor.execute("""
         UPDATE candidatas
         SET nombre=%s
@@ -219,7 +225,6 @@ def editar():
         """, (nuevo_nombre, candidata_id))
 
     db.commit()
-
     cursor.close()
     db.close()
 
@@ -231,12 +236,13 @@ def editar():
 # =========================
 @app.route("/logout")
 def logout():
-
     session.pop("admin", None)
     return redirect("/")
+
+
 # =========================
 # RUN SERVER
 # =========================
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))  # usa el puerto de Render o 10000 por defecto
+    port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port, debug=True)
