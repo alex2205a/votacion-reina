@@ -199,7 +199,11 @@ backdrop-filter:blur(5px);
 <div class="col-lg-3 col-md-6">
 <div class="card card-candidata" onclick="seleccionar('{{c.id}}', this)">
 <div class="img-wrapper">
+{% if c.foto %}
 <img src="{{ c.foto }}">
+{% else %}
+<img src="https://via.placeholder.com/400x300?text=Sin+imagen">
+{% endif %}
 </div>
 <div class="card-body text-center p-3">
 <h5 class="fw-bold mb-0" style="color:#222;">{{c.nombre}}</h5>
