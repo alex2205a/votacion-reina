@@ -216,6 +216,41 @@ def editar():
     db.close()
 
     return redirect("/admin")
+    
+
+# =========================
+# REINICIAR TODOS LOS VOTOS
+# =========================
+@app.route("/reiniciar_votos")
+def reiniciar_votos():
+
+    if not session.get("admin"):
+        return redirect("/")
+
+    db = get_db()
+
+    cursor = db.cursor()
+
+    # Reiniciar votos de candidatas
+    cursor.execute("""
+    UPDATE candidatas
+    SET votos = 0
+    """)
+
+    # Permitir votar otra vez a alumnos
+    cursor.execute("""
+    UPDATE alumnos
+    SET voto = 0
+    """)
+
+    db.commit()
+
+    cursor.close()
+    db.close()
+
+    flash("✅ Todos los votos fueron reiniciados")
+
+    return redirect("/admin")
 
 # =========================
 # LOGOUT
